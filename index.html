@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>avtoinstruktor</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{
+  --bg:#0b1017; --bg-soft:#0e141d; --card:#141c28; --card-2:#1a2433; --border:#23303f;
+  --text:#f3f6f9; --text-dim:#8b97a8; --green:#69d420; --yellow:#f2b73b; --red:#e5484d; --blue:#2fb6e6;
+  --radius:16px;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+body{margin:0; background:var(--bg); color:var(--text); padding-bottom:env(safe-area-inset-bottom); overflow-x:hidden;}
+#app{max-width:500px; margin:0 auto; padding:16px;}
+
+.header{display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;}
+.user-badge{display:flex; align-items:center; gap:10px;}
+.user-badge img{width:40px; height:40px; border-radius:50%; border:2px solid var(--border);}
+
+.card{background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:12px;}
+.btn-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;}
+.menu-btn{background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:16px; color:var(--text); text-align:left; font-weight:700; cursor:pointer;}
+
+.ans-btn{width:100%; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px; text-align:left; color:var(--text); margin-bottom:8px; font-size:15px; cursor:pointer;}
+.ans-btn.correct{border-color:var(--green); background:#16290c;}
+.ans-btn.wrong{border-color:var(--red); background:#2b1212;}
+
+.progress-bar{height:6px; background:var(--card-2); border-radius:3px; overflow:hidden; margin-bottom:15px;}
+.progress-fill{height:100%; background:var(--blue); width:0%; transition: width 0.3s;}
+
+.back-btn{background:none; border:none; color:var(--text-dim); font-size:16px; cursor:pointer; display:flex; align-items:center; gap:4px; margin-bottom:15px;}
+.explain-box{background:var(--bg-soft); border-left:4px solid var(--blue); padding:12px; border-radius:8px; color:var(--text-dim); margin-top:10px; font-size:14px;}
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script>
+const tg = window.Telegram ? window.Telegram.WebApp : null;
+if (tg) { tg.ready(); tg.expand(); }
+
+let DB = { topics:[], tickets:[], questions:[] };
+let CURRENT_VIEW = 'home';
+let QUIZ_STATE = { pool:[], idx:0, correct:0, wrong:0, answered:false };
+
+// Local Storage Progress Tracker
+let PROGRESS = JSON.parse(localStorage.getItem('ai_progress_v2')) || { correct:0, wrong:0, answered:{} };
+function saveProgress() { localStorage.setItem('ai_progress_v2', JSON.stringify(PROGRESS)); }
+
+function triggerHaptic(type) {
+  if (tg && tg.HapticFeedback) {
+    if(type === 'success') tg.HapticFeedback.notificationOccurred('success');
+    else if(type === 'error') tg.HapticFeedback.notificationOccurred('error');
+    else tg.HapticFeedback.impactOccurred('light');
+  }
+}
+
+async function loadData() {
+  document.getElementById('app').innerHTML = `<div style="text-align:center; padding:50px; color:var(--text-dim)">Yuklanmoqda...</div>`;
+  try {
+    const [t, tk, q] = await Promise.all([
+      fetch('/api/topics').then(r=>r.json()),
+      fetch('/api/tickets').then(r=>r.json()),
+      fetch('/api/questions').then(r=>r.json())
+    ]);
+    DB = { topics: t, tickets: tk, questions: q };
+    renderHome();
+  } catch(e) {
+    document.getElementById('app').innerHTML = `<div style="text-align:center; padding:50px; color:var(--red)">Xatolik yuz berdi.</div>`;
+  }
+}
+
+function renderHome() {
+  CURRENT_VIEW = 'home';
+  const user = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : {first_name: 'Haydovchi', photo_url:''};
+  const total = PROGRESS.correct + PROGRESS.wrong;
+  const pct = total ? Math.round((PROGRESS.correct / total) * 100) : 0;
+
+  document.getElementById('app').innerHTML = `
+    <div class="header">
+      <div class="user-badge">
+        <img src="${user.photo_url || 'https://via.placeholder.com/40'}" onerror="this.src='https://via.placeholder.com/40'">
+        <div><b>${user.first_name}</b><div style="font-size:12px; color:var(--text-dim)">O‘rganuvchi</div></div>
+      </div>
+    </div>
+
+    <div class="card" style="background: linear-gradient(135deg, #16321a, #0b1017);">
+      <div style="font-size:14px; color:var(--green)">Umumiy Natijangiz</div>
+      <div style="font-size:32px; font-weight:800; margin:5px 0">${pct}%</div>
+      <div style="font-size:12px; color:var(--text-dim)">✓ ${PROGRESS.correct} ta to'g'ri | ✗ ${PROGRESS.wrong} ta xato</div>
+    </div>
+
+    <div class="btn-grid">
+      <div class="menu-btn" onclick="triggerHaptic(); startQuiz('all')">📚 Barcha Testlar</div>
+      <div class="menu-btn" onclick="triggerHaptic(); renderTopics()">📘 Mavzular</div>
+    </div>
+    <div class="btn-grid">
+      <div class="menu-btn" onclick="triggerHaptic(); renderTickets()">🎫 Biletlar</div>
+      <div class="menu-btn" onclick="triggerHaptic(); startQuiz('exam')">⏱ Real Imtihon</div>
+    </div>
+  `;
+}
+
+function renderTopics() {
+  CURRENT_VIEW = 'topics';
+  document.getElementById('app').innerHTML = `
+    <button class="back-btn" onclick="renderHome()">‹ Bosh sahifa</button>
+    <h3>Mavzular bo'yicha</h3>
+    ${DB.topics.map(t => `
+      <div class="card" style="cursor:pointer" onclick="startQuiz('topic', '${t.id}')">
+        <b>${t.name}</b>
+        <div style="font-size:12px; color:var(--text-dim); margin-top:4px">${DB.questions.filter(q=>q.topicId===t.id).length} ta savol</div>
+      </div>
+    `).join('')}
+  `;
+}
+
+function renderTickets() {
+  CURRENT_VIEW = 'tickets';
+  document.getElementById('app').innerHTML = `
+    <button class="back-btn" onclick="renderHome()">‹ Bosh sahifa</button>
+    <h3>Biletlar bo'yicha</h3>
+    <div class="btn-grid">
+      ${DB.tickets.map(t => `
+        <div class="menu-btn" onclick="startQuiz('ticket', '${t.id}')">${t.number}-Bilet</div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function startQuiz(mode, id = null) {
+  let pool = [];
+  if (mode === 'all') pool = [...DB.questions];
+  else if (mode === 'topic') pool = DB.questions.filter(q => q.topicId === id);
+  else if (mode === 'ticket') pool = DB.questions.filter(q => q.ticketId === id);
+  else if (mode === 'exam') pool = [...DB.questions].sort(() => 0.5 - Math.random()).slice(0, 20);
+
+  if(!pool.length) { alert("Bu bo'limda savol yo'q"); return; }
+  
+  QUIZ_STATE = { pool, idx:0, correct:0, wrong:0, answered:false };
+  renderQuizQuestion();
+}
+
+function renderQuizQuestion() {
+  const q = QUIZ_STATE.pool[QUIZ_STATE.idx];
+  const progressPct = Math.round((QUIZ_STATE.idx / QUIZ_STATE.pool.length) * 100);
+  
+  document.getElementById('app').innerHTML = `
+    <button class="back-btn" onclick="renderHome()">✕ Chiqish</button>
+    <div class="progress-bar"><div class="progress-fill" style="width: ${progressPct}%"></div></div>
+    <div style="font-size:13px; color:var(--text-dim); margin-bottom:8px;">Savol ${QUIZ_STATE.idx + 1} / ${QUIZ_STATE.pool.length}</div>
+    
+    ${q.image ? `<div style="text-align:center; margin-bottom:12px;"><img src="${q.image}" style="width:100%; border-radius:12px; max-height:200px; object-fit:contain; background:var(--card);"></div>` : ''}
+    <h3 style="margin-top:0; font-size:18px;">${q.text}</h3>
+    
+    <div id="answersBlock">
+      ${q.answers.map((ans, i) => `
+        <button class="ans-btn" onclick="submitAnswer(${i}, ${ans.correct})">${ans.text}</button>
+      `).join('')}
+    </div>
+    <div id="explainBlock"></div>
+    <button id="nextBtn" class="menu-btn" style="width:100%; margin-top:15px; display:none; text-align:center; background:var(--blue);" onclick="nextQuestion()">Keyingisi</button>
+  `;
+}
+
+function submitAnswer(index, isCorrect) {
+  if (QUIZ_STATE.answered) return;
+  QUIZ_STATE.answered = true;
+  
+  const buttons = document.querySelectorAll('#answersBlock .ans-btn');
+  const q = QUIZ_STATE.pool[QUIZ_STATE.idx];
+  
+  if (isCorrect) {
+    buttons[index].classList.add('correct');
+    QUIZ_STATE.correct++;
+    PROGRESS.correct++;
+    triggerHaptic('success');
+  } else {
+    buttons[index].classList.add('wrong');
+    QUIZ_STATE.wrong++;
+    PROGRESS.wrong++;
+    triggerHaptic('error');
+    // To'g'ri javobni ham ko'rsatish
+    q.answers.forEach((ans, i) => {
+      if(ans.correct) buttons[i].classList.add('correct');
+    });
+  }
+  
+  if(q.explanation) {
+    document.getElementById('explainBlock').innerHTML = `<div class="explain-box">💡 <b>Tushuntirish:</b> ${q.explanation}</div>`;
+  }
+  
+  saveProgress();
+  document.getElementById('nextBtn').style.display = 'block';
+}
+
+function nextQuestion() {
+  QUIZ_STATE.idx++;
+  QUIZ_STATE.answered = false;
+  if(QUIZ_STATE.idx >= QUIZ_STATE.pool.length) {
+    renderResult();
+  } else {
+    renderQuizQuestion();
+  }
+}
+
+function renderResult() {
+  document.getElementById('app').innerHTML = `
+    <div style="text-align:center; padding:30px 0;">
+      <h2 style="color:var(--green)">Yakunlandi!</h2>
+      <div style="font-size:48px; font-weight:800; margin:20px 0;">${QUIZ_STATE.correct} / ${QUIZ_STATE.pool.length}</div>
+      <p style="color:var(--text-dim)">To'g'ri javoblar ko'rsatkichi</p>
+      <button class="menu-btn" style="width:100%; text-align:center; margin-top:20px;" onclick="renderHome()">Bosh sahifaga qaytish</button>
+    </div>
+  `;
+}
+
+loadData();
+</script>
+</body>
+</html>

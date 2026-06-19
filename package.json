@@ -1,0 +1,19 @@
+{
+  "name": "avtoinstruktor",
+  "version": "2.0.0",
+  "description": "Telegram Mini App for driving theory tests",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": ["telegram", "mini-app", "education"],
+  "author": "panjiyevozodbek201-ctrl",
+  "license": "MIT",
+  "dependencies": {
+    "crypto": "^1.0.1"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

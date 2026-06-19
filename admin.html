@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>avtoinstruktor — Admin</title>
+<style>
+:root{
+  --bg:#0b1017; --bg-soft:#0e141d; --card:#141c28; --card-2:#1a2433; --border:#23303f;
+  --text:#f3f6f9; --text-dim:#8b97a8; --text-faint:#5b6878;
+  --green:#69d420; --green-dark:#4c9e16; --yellow:#f2b73b; --orange:#ef9d44;
+  --blue:#2fb6e6; --purple:#9b6bf6; --red:#e5484d; --radius:16px;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;background:var(--bg);color:var(--text);min-height:100%;}
+button{font-family:inherit;cursor:pointer;}
+input,textarea,select{font-family:inherit;}
+::-webkit-scrollbar{width:8px;} ::-webkit-scrollbar-thumb{background:#23303f;border-radius:4px;}
+
+/* ---- login ---- */
+#loginScreen{
+  display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;
+}
+.login-box{
+  width:100%;max-width:360px;background:var(--card);border:1px solid var(--border);
+  border-radius:20px;padding:28px 24px;text-align:center;
+}
+.login-box .lg-icon{font-size:38px;margin-bottom:10px;}
+.login-box h1{font-size:19px;margin:0 0 4px;}
+.login-box p{color:var(--text-dim);font-size:13px;margin:0 0 20px;}
+.login-box input{
+  width:100%;background:var(--card-2);border:1px solid var(--border);border-radius:12px;
+  padding:13px 14px;color:var(--text);font-size:15px;margin-bottom:12px;outline:none;
+}
+.login-box input:focus{border-color:var(--green);}
+.btn{
+  border:none;border-radius:12px;padding:13px;font-weight:700;font-size:14px;width:100%;
+}
+.btn-green{background:var(--green);color:#0c2105;}
+.btn-ghost{background:var(--card-2);color:var(--text);border:1px solid var(--border);}
+.btn-red{background:#3a1a1c;color:#ff8a8d;border:1px solid #5c2326;}
+.err{color:var(--red);font-size:13px;margin-top:-4px;margin-bottom:10px;min-height:16px;}
+
+/* ---- layout ---- */
+#adminScreen{display:none;min-height:100vh;}
+.shell{display:flex;min-height:100vh;}
+.sidebar{
+  width:220px;flex-shrink:0;background:var(--bg-soft);border-right:1px solid var(--border);
+  padding:18px 14px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;
+}
+.sidebar .brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:15px;margin-bottom:24px;padding:0 6px;}
+.navbtn{
+  display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:10px;border:none;background:none;
+  color:var(--text-dim);font-weight:600;font-size:14px;text-align:left;width:100%;margin-bottom:4px;
+}
+.navbtn.active{background:var(--card);color:var(--text);}
+.sidebar .spacer{flex:1;}
+.sidebar .logout{color:var(--red);}
+
+.main{flex:1;padding:24px 28px;max-width:980px;}
+.main-mobile-bar{display:none;}
+.pagehead{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;}
+.pagehead h2{font-size:21px;margin:0;}
+.pagehead .sub{color:var(--text-dim);font-size:13px;margin-top:2px;}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:14px;}
+table{width:100%;border-collapse:collapse;}
+th{text-align:left;font-size:12px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;padding:0 10px 10px;border-bottom:1px solid var(--border);}
+td{padding:12px 10px;border-bottom:1px solid var(--border);font-size:14px;vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+.row-actions{display:flex;gap:8px;justify-content:flex-end;}
+.icobtn{
+  width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:var(--card-2);
+  display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--text-dim);
+}
+.icobtn:hover{color:var(--text);}
+.thumb{width:44px;height:32px;border-radius:6px;object-fit:cover;background:var(--card-2);}
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;background:var(--card-2);color:var(--text-dim);}
+.tag.sign{background:#15283a;color:var(--blue);}
+.emptyrow{text-align:center;color:var(--text-dim);padding:30px 0;}
+
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:13px;font-weight:600;color:var(--text-dim);margin-bottom:6px;}
+.field input[type=text], .field input[type=number], .field textarea, .field select{
+  width:100%;background:var(--card-2);border:1px solid var(--border);border-radius:10px;
+  padding:11px 12px;color:var(--text);font-size:14px;outline:none;
+}
+.field input:focus, .field textarea:focus, .field select:focus{border-color:var(--green);}
+.field textarea{resize:vertical;min-height:64px;}
+.checkbox-row{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--text);}
+
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;
+  z-index:100;padding:16px;
+}
+.modal-overlay.show{display:flex;}
+.modal{
+  background:var(--bg-soft);border:1px solid var(--border);border-radius:18px;padding:22px;
+  width:100%;max-width:480px;max-height:88vh;overflow:auto;
+}
+.modal h3{margin:0 0 16px;font-size:18px;}
+.modal-actions{display:flex;gap:10px;margin-top:18px;}
+
+.answer-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.answer-row input[type=text]{flex:1;}
+.answer-row input[type=radio]{width:18px;height:18px;accent-color:var(--green);}
+
+.imgdrop{
+  border:1.5px dashed var(--border);border-radius:12px;padding:16px;text-align:center;cursor:pointer;
+  color:var(--text-dim);font-size:13px;background:var(--card-2);
+}
+.imgdrop img{max-width:100%;max-height:140px;border-radius:8px;display:block;margin:0 auto 8px;}
+.imgdrop input{display:none;}
+
+.toolbar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+.toolbar select, .toolbar input{
+  background:var(--card-2);border:1px solid var(--border);border-radius:10px;padding:9px 12px;color:var(--text);font-size:13px;
+}
+#toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#1c2735;
+  border:1px solid var(--border);color:var(--text);padding:12px 20px;border-radius:12px;font-size:14px;
+  opacity:0;transition:all .25s;z-index:200;pointer-events:none;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;}
+.stat-card .v{font-size:24px;font-weight:800;}
+.stat-card .l{font-size:12px;color:var(--text-dim);margin-top:4px;}
+
+@media (max-width: 760px){
+  .sidebar{display:none;}
+  .main{padding:18px 14px;max-width:100%;}
+  .main-mobile-bar{
+    display:flex;gap:6px;overflow-x:auto;margin-bottom:18px;padding-bottom:4px;
+  }
+  .main-mobile-bar button{
+    flex-shrink:0;background:var(--card);border:1px solid var(--border);color:var(--text-dim);
+    border-radius:20px;padding:9px 14px;font-size:13px;font-weight:600;
+  }
+  .main-mobile-bar button.active{background:var(--green);color:#0c2105;border-color:var(--green);}
+  .stat-grid{grid-template-columns:1fr 1fr;}
+  table{font-size:13px;}
+}
+</style>
+</head>
+<body>
+
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="lg-icon">🔐</div>
+    <h1>Admin panel</h1>
+    <p>avtoinstruktor — mazmunni boshqarish</p>
+    <input type="password" id="pwInput" placeholder="Admin parol" onkeydown="if(event.key==='Enter')doLogin()">
+    <div class="err" id="loginErr"></div>
+    <button class="btn btn-green" onclick="doLogin()">Kirish</button>
+  </div>
+</div>
+
+<div id="adminScreen">
+  <div class="shell">
+    <div class="sidebar">
+      <div class="brand">🚗 avtoinstruktor</div>
+      <button class="navbtn" data-tab="dashboard" onclick="switchTab('dashboard')">📊 Bosh sahifa</button>
+      <button class="navbtn" data-tab="topics" onclick="switchTab('topics')">📘 Mavzular</button>
+      <button class="navbtn" data-tab="tickets" onclick="switchTab('tickets')">🎫 Biletlar</button>
+      <button class="navbtn" data-tab="questions" onclick="switchTab('questions')">❓ Savollar</button>
+      <div class="spacer"></div>
+      <button class="navbtn" onclick="window.open('/','_blank')">🔗 Ilovani ochish</button>
+      <button class="navbtn logout" onclick="doLogout()">🚪 Chiqish</button>
+    </div>
+    <div class="main">
+      <div class="main-mobile-bar">
+        <button data-tab="dashboard" onclick="switchTab('dashboard')" class="active">Bosh sahifa</button>
+        <button data-tab="topics" onclick="switchTab('topics')">Mavzular</button>
+        <button data-tab="tickets" onclick="switchTab('tickets')">Biletlar</button>
+        <button data-tab="questions" onclick="switchTab('questions')">Savollar</button>
+      </div>
+      <div id="mainContent"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modalBody"></div>
+</div>
+<div id="toast"></div>
+
+<script>
+let TOKEN = localStorage.getItem('ai_admin_token') || '';
+let DB = { topics:[], tickets:[], questions:[] };
+let TAB = 'dashboard';
+let Q_FILTER = { topicId:'', ticketId:'', search:'' };
+
+function toast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(window._t); window._t = setTimeout(()=>el.classList.remove('show'), 2200);
+}
+function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// ---------- auth ----------
+async function doLogin(){
+  const pw = document.getElementById('pwInput').value;
+  document.getElementById('loginErr').textContent = '';
+  try{
+    const res = await fetch('/api/admin/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({password:pw}) });
+    const data = await res.json();
+    if (!res.ok) { document.getElementById('loginErr').textContent = data.error || 'Xatolik'; return; }
+    TOKEN = data.token;
+    localStorage.setItem('ai_admin_token', TOKEN);
+    boot();
+  } catch(e){ document.getElementById('loginErr').textContent = 'Server bilan bog\'lanishda xatolik'; }
+}
+function doLogout(){
+  localStorage.removeItem('ai_admin_token'); TOKEN=''; location.reload();
+}
+function authHeaders(extra){
+  return Object.assign({ 'Authorization':'Bearer '+TOKEN }, extra||{});
+}
+
+// ---------- api ----------
+async function apiGet(path){
+  const res = await fetch('/api/'+path);
+  if (!res.ok) throw new Error((await res.json().catch(()=>({})) ).error || 'Xatolik');
+  return res.json();
+}
+async function apiSend(method, path, body){
+  const res = await fetch('/api/'+path, {
+    method, headers: authHeaders({'Content-Type':'application/json'}), body: body!==undefined ? JSON.stringify(body) : undefined
+  });
+  if (res.status === 401){ toast('Sessiya tugadi, qaytadan kiring'); doLogout(); throw new Error('401'); }
+  if (!res.ok) throw new Error((await res.json().catch(()=>({})) ).error || 'Xatolik');
+  return res.json();
+}
+
+async function loadAll(){
+  const [topics, tickets, questions] = await Promise.all([apiGet('topics'), apiGet('tickets'), apiGet('questions')]);
+  DB.topics = topics; DB.tickets = tickets; DB.questions = questions;
+}
+
+async function boot(){
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('adminScreen').style.display = 'block';
+  try { await loadAll(); } catch(e){ toast('Ma\'lumotlarni yuklashda xatolik'); }
+  switchTab('dashboard');
+}
+if (TOKEN) boot();
+
+function switchTab(tab){
+  TAB = tab;
+  document.querySelectorAll('.navbtn[data-tab]').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+  document.querySelectorAll('.main-mobile-bar button').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+  const fns = { dashboard: renderDashboard, topics: renderTopicsTab, tickets: renderTicketsTab, questions: renderQuestionsTab };
+  fns[tab]();
+}
+
+// ---------- dashboard ----------
+function renderDashboard(){
+  const el = document.getElementById('mainContent');
+  el.innerHTML = `
+    <div class="pagehead"><div><h2>Bosh sahifa</h2><div class="sub">Umumiy statistika</div></div></div>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="v">${DB.topics.length}</div><div class="l">Mavzular</div></div>
+      <div class="stat-card"><div class="v">${DB.tickets.length}</div><div class="l">Biletlar</div></div>
+      <div class="stat-card"><div class="v">${DB.questions.length}</div><div class="l">Savollar</div></div>
+    </div>
+    <div class="card">
+      <b>Tezkor boshlash</b>
+      <p style="color:var(--text-dim);font-size:13px;line-height:1.6;margin:10px 0 0">
+        1. Avval <b>Mavzular</b> bo'limida mavzu(lar) yarating (masalan: "Yo'l belgilari", "Jarima va javobgarlik"). Belgilarga oid mavzuni "Bu yo'l belgisi mavzusi" deb belgilang — u ilovaning "Yo'l belgilari" bo'limida chiqadi.<br><br>
+        2. <b>Biletlar</b> bo'limida bilet raqamlarini yarating.<br><br>
+        3. <b>Savollar</b> bo'limida savol matni, ixtiyoriy rasm va 2-6 ta javob variantini kiritib, to'g'ri javobni belgilang, so'ng mavzu/bilet biriktiring.
+      </p>
+    </div>
+  `;
+}
+
+// ---------- topics tab ----------
+function renderTopicsTab(){
+  const el = document.getElementById('mainContent');
+  el.innerHTML = `
+    <div class="pagehead">
+      <div><h2>Mavzular</h2><div class="sub">${DB.topics.length} ta mavzu</div></div>
+      <button class="btn btn-green" style="width:auto;padding:11px 18px" onclick="openTopicModal()">+ Mavzu qo'shish</button>
+    </div>
+    <div class="card" style="padding:0">
+      <table>
+        <thead><tr><th>Nomi</th><th>Turi</th><th>Savollar</th><th></th></tr></thead>
+        <tbody id="topicsBody"></tbody>
+      </table>
+    </div>
+  `;
+  const body = document.getElementById('topicsBody');
+  if (!DB.topics.length){ body.innerHTML = `<tr><td colspan="4" class="emptyrow">Mavzular yo'q</td></tr>`; return; }
+  body.innerHTML = DB.topics.map(t=>{
+    const count = DB.questions.filter(q=>q.topicId===t.id).length;
+    return `<tr>
+      <td><b>${escapeHtml(t.name)}</b></td>
+      <td>${t.isSign? '<span class="tag sign">Yo\'l belgisi</span>' : '<span class="tag">Oddiy</span>'}</td>
+      <td>${count}</td>
+      <td><div class="row-actions">
+        <button class="icobtn" onclick='openTopicModal(${JSON.stringify(t).replace(/'/g,"&#39;")})'>✏️</button>
+        <button class="icobtn" onclick="deleteTopic('${t.id}')">🗑️</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+function openTopicModal(topic){
+  const isEdit = !!topic;
+  document.getElementById('modalBody').innerHTML = `
+    <h3>${isEdit? "Mavzuni tahrirlash" : "Yangi mavzu"}</h3>
+    <div class="field"><label>Mavzu nomi</label><input type="text" id="topicName" value="${isEdit? escapeHtml(topic.name):''}" placeholder="Masalan: Umumiy qoidalar"></div>
+    <div class="field"><label class="checkbox-row" style="margin-bottom:0"><input type="checkbox" id="topicIsSign" ${isEdit&&topic.isSign?'checked':''}> Bu — yo'l belgilari mavzusi</label></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Bekor qilish</button>
+      <button class="btn btn-green" onclick="saveTopic(${isEdit? `'${topic.id}'`:'null'})">Saqlash</button>
+    </div>
+  `;
+  showModal();
+}
+async function saveTopic(id){
+  const name = document.getElementById('topicName').value.trim();
+  const isSign = document.getElementById('topicIsSign').checked;
+  if (!name){ toast("Mavzu nomini kiriting"); return; }
+  try{
+    if (id) await apiSend('PUT', 'topics/'+id, {name, isSign});
+    else await apiSend('POST', 'topics', {name, isSign});
+    await loadAll(); closeModal(); renderTopicsTab(); toast('Saqlandi');
+  } catch(e){ toast('Xatolik: '+e.message); }
+}
+async function deleteTopic(id){
+  if (!confirm("Mavzu va unga tegishli savollar o'chirilsinmi?")) return;
+  try{ await apiSend('DELETE','topics/'+id); await loadAll(); renderTopicsTab(); toast("O'chirildi"); }
+  catch(e){ toast('Xatolik: '+e.message); }
+}
+
+// ---------- tickets tab ----------
+function renderTicketsTab(){
+  const el = document.getElementById('mainContent');
+  el.innerHTML = `
+    <div class="pagehead">
+      <div><h2>Biletlar</h2><div class="sub">${DB.tickets.length} ta bilet</div></div>
+      <button class="btn btn-green" style="width:auto;padding:11px 18px" onclick="openTicketModal()">+ Bilet qo'shish</button>
+    </div>
+    <div class="card" style="padding:0">
+      <table>
+        <thead><tr><th>Bilet raqami</th><th>Savollar</th><th></th></tr></thead>
+        <tbody id="ticketsBody"></tbody>
+      </table>
+    </div>
+  `;
+  const body = document.getElementById('ticketsBody');
+  if (!DB.tickets.length){ body.innerHTML = `<tr><td colspan="3" class="emptyrow">Biletlar yo'q</td></tr>`; return; }
+  body.innerHTML = DB.tickets.slice().sort((a,b)=>a.number-b.number).map(t=>{
+    const count = DB.questions.filter(q=>q.ticketId===t.id).length;
+    return `<tr>
+      <td><b>${t.number}-bilet</b></td>
+      <td>${count}</td>
+      <td><div class="row-actions">
+        <button class="icobtn" onclick='openTicketModal(${JSON.stringify(t).replace(/'/g,"&#39;")})'>✏️</button>
+        <button class="icobtn" onclick="deleteTicket('${t.id}')">🗑️</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+function openTicketModal(ticket){
+  const isEdit = !!ticket;
+  document.getElementById('modalBody').innerHTML = `
+    <h3>${isEdit? "Biletni tahrirlash" : "Yangi bilet"}</h3>
+    <div class="field"><label>Bilet raqami</label><input type="number" id="ticketNumber" value="${isEdit? ticket.number : (DB.tickets.length+1)}"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Bekor qilish</button>
+      <button class="btn btn-green" onclick="saveTicket(${isEdit? `'${ticket.id}'`:'null'})">Saqlash</button>
+    </div>
+  `;
+  showModal();
+}
+async function saveTicket(id){
+  const number = parseInt(document.getElementById('ticketNumber').value, 10);
+  if (!number){ toast("Bilet raqamini kiriting"); return; }
+  try{
+    if (id) await apiSend('PUT','tickets/'+id, {number});
+    else await apiSend('POST','tickets', {number});
+    await loadAll(); closeModal(); renderTicketsTab(); toast('Saqlandi');
+  } catch(e){ toast('Xatolik: '+e.message); }
+}
+async function deleteTicket(id){
+  if (!confirm("Bilet o'chirilsinmi? Unga bog'langan savollar bilet biriktirmasidan chiqariladi.")) return;
+  try{ await apiSend('DELETE','tickets/'+id); await loadAll(); renderTicketsTab(); toast("O'chirildi"); }
+  catch(e){ toast('Xatolik: '+e.message); }
+}
+
+// ---------- questions tab ----------
+function renderQuestionsTab(){
+  const el = document.getElementById('mainContent');
+  el.innerHTML = `
+    <div class="pagehead">
+      <div><h2>Savollar</h2><div class="sub">${DB.questions.length} ta savol</div></div>
+      <button class="btn btn-green" style="width:auto;padding:11px 18px" onclick="openQuestionModal()">+ Savol qo'shish</button>
+    </div>
+    <div class="toolbar">
+      <select id="filterTopic" onchange="onQFilterChange()">
+        <option value="">Barcha mavzular</option>
+        ${DB.topics.map(t=>`<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('')}
+      </select>
+      <select id="filterTicket" onchange="onQFilterChange()">
+        <option value="">Barcha biletlar</option>
+        ${DB.tickets.map(t=>`<option value="${t.id}">${t.number}-bilet</option>`).join('')}
+      </select>
+      <input type="text" id="filterSearch" placeholder="Qidirish..." oninput="onQFilterChange()" style="flex:1;min-width:140px">
+    </div>
+    <div class="card" style="padding:0">
+      <table>
+        <thead><tr><th>Rasm</th><th>Savol</th><th>Mavzu</th><th>Bilet</th><th></th></tr></thead>
+        <tbody id="questionsBody"></tbody>
+      </table>
+    </div>
+  `;
+  document.getElementById('filterTopic').value = Q_FILTER.topicId;
+  document.getElementById('filterTicket').value = Q_FILTER.ticketId;
+  document.getElementById('filterSearch').value = Q_FILTER.search;
+  renderQuestionsBody();
+}
+function onQFilterChange(){
+  Q_FILTER.topicId = document.getElementById('filterTopic').value;
+  Q_FILTER.ticketId = document.getElementById('filterTicket').value;
+  Q_FILTER.search = document.getElementById('filterSearch').value.toLowerCase();
+  renderQuestionsBody();
+}
+function renderQuestionsBody(){
+  const body = document.getElementById('questionsBody');
+  let list = DB.questions.slice();
+  if (Q_FILTER.topicId) list = list.filter(q=>q.topicId===Q_FILTER.topicId);
+  if (Q_FILTER.ticketId) list = list.filter(q=>q.ticketId===Q_FILTER.ticketId);
+  if (Q_FILTER.search) list = list.filter(q=>q.text.toLowerCase().includes(Q_FILTER.search));
+  if (!list.length){ body.innerHTML = `<tr><td colspan="5" class="emptyrow">Savollar topilmadi</td></tr>`; return; }
+  body.innerHTML = list.map(q=>{
+    const topic = DB.topics.find(t=>t.id===q.topicId);
+    const ticket = DB.tickets.find(t=>t.id===q.ticketId);
+    return `<tr>
+      <td>${q.image? `<img class="thumb" src="${q.image}">` : '—'}</td>
+      <td style="max-width:280px">${escapeHtml(q.text).slice(0,90)}${q.text.length>90?'…':''}</td>
+      <td>${topic? escapeHtml(topic.name) : '<span class="tag">Yo\'q</span>'}</td>
+      <td>${ticket? ticket.number+'-bilet' : '<span class="tag">Yo\'q</span>'}</td>
+      <td><div class="row-actions">
+        <button class="icobtn" onclick="openQuestionModal(${JSON.stringify(q.id)})">✏️</button>
+        <button class="icobtn" onclick="deleteQuestion('${q.id}')">🗑️</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+let CURRENT_IMAGE = null; // data URL or existing /uploads url, staged before save
+function openQuestionModal(id){
+  const q = id ? DB.questions.find(x=>x.id===id) : null;
+  CURRENT_IMAGE = q ? q.image : null;
+  const answers = q && q.answers && q.answers.length ? q.answers : [{text:'',correct:true},{text:'',correct:false},{text:'',correct:false},{text:'',correct:false}];
+  document.getElementById('modalBody').innerHTML = `
+    <h3>${q? "Savolni tahrirlash" : "Yangi savol"}</h3>
+
+    <div class="field"><label>Rasm (ixtiyoriy)</label>
+      <div class="imgdrop" id="imgDrop" onclick="document.getElementById('imgFileInput').click()">
+        ${renderImgPreview()}
+      </div>
+      <input type="file" id="imgFileInput" accept="image/png,image/jpeg,image/webp" onchange="onImagePicked(event)">
+    </div>
+
+    <div class="field"><label>Savol matni</label>
+      <textarea id="qText" placeholder="Savolni kiriting...">${q? escapeHtml(q.text) : ''}</textarea>
+    </div>
+
+    <div class="field"><label>Javob variantlari (to'g'ri javobni belgilang)</label>
+      <div id="answersList">
+        ${answers.map((a,i)=>answerRowHtml(a,i)).join('')}
+      </div>
+      <button class="btn btn-ghost" style="margin-top:6px" onclick="addAnswerRow()">+ Variant qo'shish</button>
+    </div>
+
+    <div class="field"><label>Izoh (ixtiyoriy, javobdan keyin ko'rsatiladi)</label>
+      <textarea id="qExplain" placeholder="Nega bu javob to'g'ri...">${q&&q.explanation? escapeHtml(q.explanation) : ''}</textarea>
+    </div>
+
+    <div class="field"><label>Mavzu</label>
+      <select id="qTopic">
+        <option value="">— Tanlanmagan —</option>
+        ${DB.topics.map(t=>`<option value="${t.id}" ${q&&q.topicId===t.id?'selected':''}>${escapeHtml(t.name)}</option>`).join('')}
+      </select>
+    </div>
+    <div class="field"><label>Bilet</label>
+      <select id="qTicket">
+        <option value="">— Tanlanmagan —</option>
+        ${DB.tickets.map(t=>`<option value="${t.id}" ${q&&q.ticketId===t.id?'selected':''}>${t.number}-bilet</option>`).join('')}
+      </select>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Bekor qilish</button>
+      <button class="btn btn-green" id="saveQBtn" onclick="saveQuestion(${q? `'${q.id}'`:'null'})">Saqlash</button>
+    </div>
+  `;
+  showModal();
+}
+function renderImgPreview(){
+  if (CURRENT_IMAGE) return `<img src="${CURRENT_IMAGE}"><div>Rasmni o'zgartirish uchun bosing</div>`;
+  return `<div style="font-size:26px;margin-bottom:6px">🖼️</div><div>Rasm yuklash uchun bosing (PNG/JPG/WEBP)</div>`;
+}
+function onImagePicked(e){
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{ CURRENT_IMAGE = reader.result; document.getElementById('imgDrop').innerHTML = renderImgPreview(); };
+  reader.readAsDataURL(file);
+}
+function answerRowHtml(a, i){
+  return `<div class="answer-row" data-i="${i}">
+    <input type="radio" name="correctAns" ${a.correct?'checked':''} onchange="setCorrect(${i})">
+    <input type="text" value="${escapeHtml(a.text)}" placeholder="Variant ${i+1}">
+    <button class="icobtn" onclick="removeAnswerRow(${i})">✕</button>
+  </div>`;
+}
+function addAnswerRow(){
+  const list = document.getElementById('answersList');
+  const i = list.children.length;
+  list.insertAdjacentHTML('beforeend', answerRowHtml({text:'',correct:false}, i));
+}
+function removeAnswerRow(i){
+  const rows = document.querySelectorAll('#answersList .answer-row');
+  if (rows.length<=2){ toast("Kamida 2 variant kerak"); return; }
+  rows[i].remove();
+  // reindex
+  document.querySelectorAll('#answersList .answer-row').forEach((r,idx)=>{
+    r.dataset.i = idx;
+    r.querySelector('button').setAttribute('onclick', `removeAnswerRow(${idx})`);
+    r.querySelector('input[type=radio]').setAttribute('onchange', `setCorrect(${idx})`);
+  });
+}
+function setCorrect(i){ /* radio handles exclusivity natively via name=correctAns */ }
+function collectAnswers(){
+  const rows = document.querySelectorAll('#answersList .answer-row');
+  return Array.from(rows).map(r=>({
+    text: r.querySelector('input[type=text]').value.trim(),
+    correct: r.querySelector('input[type=radio]').checked
+  })).filter(a=>a.text);
+}
+async function saveQuestion(id){
+  const text = document.getElementById('qText').value.trim();
+  const explanation = document.getElementById('qExplain').value.trim();
+  const topicId = document.getElementById('qTopic').value || null;
+  const ticketId = document.getElementById('qTicket').value || null;
+  const answers = collectAnswers();
+  if (!text){ toast("Savol matnini kiriting"); return; }
+  if (answers.length<2){ toast("Kamida 2 ta to'ldirilgan variant kerak"); return; }
+  if (!answers.some(a=>a.correct)){ toast("To'g'ri javobni belgilang"); return; }
+
+  const btn = document.getElementById('saveQBtn');
+  btn.disabled = true; btn.textContent = 'Saqlanmoqda...';
+  try{
+    let imageUrl = CURRENT_IMAGE;
+    if (imageUrl && imageUrl.startsWith('data:')){
+      const up = await apiSend('POST','upload', {dataUrl: imageUrl});
+      imageUrl = up.url;
+    }
+    const payload = { text, explanation, topicId, ticketId, answers, image: imageUrl };
+    if (id) await apiSend('PUT','questions/'+id, payload);
+    else await apiSend('POST','questions', payload);
+    await loadAll(); closeModal(); renderQuestionsTab(); toast('Saqlandi');
+  } catch(e){ toast('Xatolik: '+e.message); }
+  finally{ btn.disabled=false; btn.textContent='Saqlash'; }
+}
+async function deleteQuestion(id){
+  if (!confirm("Savol o'chirilsinmi?")) return;
+  try{ await apiSend('DELETE','questions/'+id); await loadAll(); renderQuestionsTab(); toast("O'chirildi"); }
+  catch(e){ toast('Xatolik: '+e.message); }
+}
+
+// ---------- modal ----------
+function showModal(){ document.getElementById('modalOverlay').classList.add('show'); }
+function closeModal(){ document.getElementById('modalOverlay').classList.remove('show'); }
+document.getElementById('modalOverlay').addEventListener('click', (e)=>{ if (e.target.id==='modalOverlay') closeModal(); });
+</script>
+</body>
+</html>

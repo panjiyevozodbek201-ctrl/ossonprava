@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>avtoinstruktor</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{
+  --bg:#0b1017;
+  --bg-soft:#0e141d;
+  --card:#141c28;
+  --card-2:#1a2433;
+  --border:#23303f;
+  --text:#f3f6f9;
+  --text-dim:#8b97a8;
+  --text-faint:#5b6878;
+  --green:#69d420;
+  --green-dark:#4c9e16;
+  --yellow:#f2b73b;
+  --orange:#ef9d44;
+  --blue:#2fb6e6;
+  --purple:#9b6bf6;
+  --pink:#f0529b;
+  --red:#e5484d;
+  --radius:18px;
+  --radius-sm:12px;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);height:100%;}
+body{padding-bottom:env(safe-area-inset-bottom);}
+button{font-family:inherit;}
+a{color:inherit;text-decoration:none;}
+::-webkit-scrollbar{display:none;}
+
+#topbar{
+  display:flex;align-items:center;gap:10px;
+  padding:14px 16px;position:sticky;top:0;z-index:30;
+  background:linear-gradient(180deg,var(--bg) 70%,rgba(11,16,23,0));
+}
+#topbar.hidden{display:none;}
+.backbtn{
+  display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--text);
+  font-size:16px;font-weight:600;padding:6px 4px;cursor:pointer;
+}
+.topbar-title{font-size:17px;font-weight:700;flex:1;}
+
+#app{max-width:520px;margin:0 auto;padding:0 16px 32px;min-height:100vh;}
+
+/* ---- home header ---- */
+.home-header{display:flex;align-items:center;gap:12px;padding:14px 0 18px;}
+.avatar{
+  width:48px;height:48px;border-radius:50%;object-fit:cover;
+  background:var(--card-2);border:2px solid var(--border);flex-shrink:0;
+}
+.home-header .who{flex:1;min-width:0;}
+.home-header .name{font-weight:700;font-size:16px;}
+.home-header .role{color:var(--orange);font-size:13px;font-weight:600;display:flex;align-items:center;gap:4px;}
+.icon-btn{
+  width:38px;height:38px;border-radius:50%;background:var(--card);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-dim);
+}
+.icon-row{display:flex;gap:8px;}
+
+/* ---- progress card ---- */
+.progress-card{
+  background:linear-gradient(135deg,#16321a,#0f1c12);border:1px solid #234022;
+  border-radius:var(--radius);padding:16px 18px;margin-bottom:14px;
+}
+.progress-card .top-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;}
+.progress-card .label{color:#9adf7e;font-size:13px;font-weight:600;}
+.progress-card .pct{font-size:30px;font-weight:800;margin-top:2px;}
+.progress-card .meta{text-align:right;font-size:13px;color:var(--text-dim);}
+.progress-card .meta div{margin-bottom:3px;}
+.progress-card .meta .ok{color:#7ce05c;}
+.progress-card .meta .bad{color:var(--red);}
+.bar-track{height:8px;border-radius:5px;background:#1d2e1c;margin-top:10px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:5px;background:linear-gradient(90deg,#4c9e16,#8ee84a);}
+
+/* generic grid of feature cards */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.feat-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:16px;cursor:pointer;position:relative;overflow:hidden;min-height:84px;
+  display:flex;flex-direction:column;justify-content:space-between;
+}
+.feat-card .ico{
+  width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:17px;margin-bottom:8px;
+}
+.feat-card .title{font-weight:700;font-size:15px;line-height:1.2;}
+.feat-card .badge{
+  position:absolute;top:12px;right:12px;background:#1f8a2e;color:#fff;font-size:11px;font-weight:700;
+  border-radius:20px;padding:2px 8px;
+}
+.feat-card .pctbadge{
+  position:absolute;top:12px;right:12px;background:var(--blue);color:#04202c;font-size:11px;font-weight:700;
+  border-radius:20px;padding:2px 8px;
+}
+.feat-card .miniprog{position:absolute;bottom:0;left:0;height:3px;background:var(--blue);}
+
+.cta{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  border-radius:var(--radius);padding:18px 18px;margin-bottom:10px;cursor:pointer;border:none;width:100%;text-align:left;
+}
+.cta.green{background:linear-gradient(135deg,#7fe22e,#52b316);color:#0c2105;}
+.cta.yellow{background:linear-gradient(135deg,#f7c95a,#e2972b);color:#2b1d02;}
+.cta .ctitle{font-size:17px;font-weight:800;}
+.cta .csub{font-size:13px;opacity:.8;margin-top:2px;}
+.cta .playico{
+  width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.35);
+  display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;
+}
+
+.oktagon-card{
+  background:linear-gradient(135deg,#3a4456,#252e3c);border-radius:var(--radius);padding:18px;
+  margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;
+}
+.oktagon-card .ctitle{font-weight:800;font-size:17px;color:#dfe6ee;}
+.oktagon-card .csub{font-size:13px;color:#9aa7b8;margin-top:2px;}
+.oktagon-card .swordwrap{
+  width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.12);
+  display:flex;align-items:center;justify-content:center;font-size:18px;
+}
+
+/* ---- search bar ---- */
+.searchbar{
+  display:flex;align-items:center;gap:10px;background:var(--card-2);border:1px solid var(--border);
+  border-radius:14px;padding:13px 14px;margin-bottom:14px;
+}
+.searchbar input{
+  background:none;border:none;outline:none;color:var(--text);font-size:15px;flex:1;
+}
+.searchbar input::placeholder{color:var(--text-faint);}
+.chip-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.chip{
+  border:1px solid var(--blue);color:var(--blue);background:none;border-radius:20px;padding:7px 14px;
+  font-size:13px;font-weight:600;cursor:pointer;
+}
+.chip.active{background:var(--blue);color:#04222e;}
+
+.section-title{font-size:22px;font-weight:800;margin:6px 0 16px;}
+
+/* ---- list rows (topics) ---- */
+.topic-row{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:16px 16px;margin-bottom:10px;cursor:pointer;
+}
+.topic-row .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.topic-row .tname{font-weight:700;font-size:16px;}
+.topic-row .tcount{color:var(--text-dim);font-size:13px;margin-top:2px;}
+.topic-row .pct{font-size:13px;color:var(--text-dim);font-weight:600;}
+.topic-row .arrow{color:var(--text-faint);}
+.tbar-track{height:6px;border-radius:4px;background:var(--card-2);margin-top:8px;overflow:hidden;}
+.tbar-fill{height:100%;border-radius:4px;}
+
+/* ---- tickets grid ---- */
+.ticket-tile{
+  background:var(--green);background:linear-gradient(160deg,#7fe22e,#4c9e16);
+  border-radius:var(--radius);padding:16px;cursor:pointer;color:#0c2105;
+}
+.ticket-tile .tnum{font-weight:800;font-size:17px;margin-bottom:8px;}
+.ticket-tile .trow{display:flex;gap:14px;font-size:14px;font-weight:700;}
+.ticket-tile .ok::before{content:"✓ ";}
+.ticket-tile .bad{opacity:.85;}
+.ticket-tile.empty{background:var(--card);color:var(--text-dim);}
+
+/* ---- sign categories ---- */
+.sign-tile{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:18px 10px;text-align:center;cursor:pointer;
+}
+.sign-tile .emoji{font-size:34px;margin-bottom:10px;display:block;}
+.sign-tile .sname{font-weight:700;font-size:14px;line-height:1.25;margin-bottom:4px;}
+.sign-tile .scount{color:var(--text-dim);font-size:12px;}
+
+/* ---- bottom sheet ---- */
+.sheet-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:90;display:flex;align-items:flex-end;
+  opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.sheet-overlay.show{opacity:1;pointer-events:auto;}
+.sheet{
+  background:var(--bg-soft);border-radius:24px 24px 0 0;width:100%;max-width:520px;margin:0 auto;
+  padding:10px 20px 26px;max-height:88vh;overflow:auto;transform:translateY(20px);transition:transform .2s;
+}
+.sheet-overlay.show .sheet{transform:translateY(0);}
+.sheet-handle{width:40px;height:4px;background:#2a3647;border-radius:3px;margin:6px auto 16px;}
+.sheet h3{text-align:center;font-size:19px;margin:0 0 4px;}
+.sheet .sub{text-align:center;color:var(--text-dim);font-size:13px;margin-bottom:18px;}
+
+/* level carousel */
+.level-track{display:flex;overflow-x:auto;gap:14px;scroll-snap-type:x mandatory;padding-bottom:6px;margin-bottom:14px;}
+.level-card{
+  scroll-snap-align:center;flex:0 0 230px;height:230px;border-radius:28px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+  border:1px solid rgba(255,255,255,.18);padding:14px;
+}
+.level-card .lico{font-size:40px;margin-bottom:10px;}
+.level-card .lname{font-weight:800;font-size:20px;margin-bottom:6px;}
+.level-card .lsub{font-size:13px;opacity:.85;padding:0 10px;}
+.dots{display:flex;justify-content:center;gap:6px;margin-bottom:16px;}
+.dot{width:7px;height:7px;border-radius:50%;background:#33414f;}
+.dot.active{background:var(--text);width:18px;border-radius:4px;}
+.range-row{display:flex;justify-content:space-between;font-size:13px;color:var(--text-dim);margin-bottom:8px;}
+.full-bar-track{height:8px;background:var(--card-2);border-radius:5px;overflow:hidden;margin-bottom:18px;}
+.full-bar-fill{height:100%;border-radius:5px;}
+.sheet-cta{
+  width:100%;border:none;border-radius:16px;padding:16px;font-weight:700;font-size:15px;cursor:pointer;
+}
+
+/* count picker */
+.count-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:6px;}
+.count-tile{
+  background:var(--card-2);border:1px solid var(--border);border-radius:var(--radius);
+  padding:22px 0;text-align:center;cursor:pointer;
+}
+.count-tile .num{font-size:30px;font-weight:800;}
+.count-tile .lbl{color:var(--text-dim);font-size:13px;margin-top:4px;}
+
+/* ---- quiz ---- */
+.quiz-progress{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.quiz-progress .qbar{flex:1;height:7px;background:var(--card-2);border-radius:5px;overflow:hidden;}
+.quiz-progress .qbar-fill{height:100%;background:var(--blue);border-radius:5px;transition:width .25s;}
+.quiz-progress .qnum{font-size:13px;color:var(--text-dim);font-weight:700;white-space:nowrap;}
+.quiz-timer{font-size:13px;font-weight:700;color:var(--yellow);white-space:nowrap;}
+.qimg-wrap{
+  width:100%;border-radius:var(--radius);overflow:hidden;margin-bottom:16px;background:var(--card);
+  display:flex;align-items:center;justify-content:center;min-height:120px;
+}
+.qimg-wrap img{width:100%;display:block;}
+.qtext{font-size:17px;font-weight:700;line-height:1.4;margin-bottom:18px;}
+.answers{display:flex;flex-direction:column;gap:10px;margin-bottom:20px;}
+.ans-btn{
+  background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:15px 16px;
+  font-size:15px;color:var(--text);text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;
+}
+.ans-btn .letter{
+  width:26px;height:26px;border-radius:50%;background:var(--card-2);display:flex;align-items:center;
+  justify-content:center;font-size:12px;font-weight:700;color:var(--text-dim);flex-shrink:0;
+}
+.ans-btn.correct{border-color:var(--green);background:#16290c;}
+.ans-btn.correct .letter{background:var(--green);color:#0c2105;}
+.ans-btn.wrong{border-color:var(--red);background:#2b1212;}
+.ans-btn.wrong .letter{background:var(--red);color:#fff;}
+.ans-btn.disabled{cursor:default;}
+.explain-box{
+  background:var(--card-2);border-radius:14px;padding:14px 16px;font-size:14px;color:var(--text-dim);
+  margin-bottom:16px;border-left:3px solid var(--blue);
+}
+.quiz-footer{display:flex;gap:10px;}
+.quiz-footer button{
+  flex:1;border:none;border-radius:14px;padding:15px;font-weight:700;font-size:15px;cursor:pointer;
+}
+.btn-primary{background:var(--green);color:#0c2105;}
+.btn-ghost{background:var(--card-2);color:var(--text);}
+.bookmark-toggle{
+  width:42px;height:42px;border-radius:50%;background:var(--card);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:17px;
+}
+.qtop-row{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+
+/* result */
+.result-wrap{text-align:center;padding:30px 10px 10px;}
+.result-circle{
+  width:150px;height:150px;border-radius:50%;margin:0 auto 22px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;border:8px solid var(--card-2);
+}
+.result-circle .big{font-size:34px;font-weight:800;}
+.result-circle .small{font-size:12px;color:var(--text-dim);}
+.result-title{font-size:21px;font-weight:800;margin-bottom:6px;}
+.result-sub{color:var(--text-dim);font-size:14px;margin-bottom:26px;}
+.result-stats{display:flex;justify-content:center;gap:26px;margin-bottom:26px;}
+.result-stats div{text-align:center;}
+.result-stats .v{font-size:20px;font-weight:800;}
+.result-stats .l{font-size:12px;color:var(--text-dim);}
+
+/* empty state */
+.empty-state{text-align:center;padding:60px 20px;color:var(--text-dim);}
+.empty-state .e{font-size:40px;margin-bottom:14px;}
+
+/* profile */
+.profile-head{text-align:center;padding:20px 0 10px;}
+.profile-head .pavatar{
+  width:96px;height:96px;border-radius:50%;object-fit:cover;background:var(--card-2);
+  border:2px solid var(--border);margin-bottom:12px;
+}
+.profile-head .pname{font-size:19px;font-weight:800;}
+.settings-group{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:18px;overflow:hidden;}
+.settings-row{
+  display:flex;align-items:center;gap:14px;padding:15px 16px;border-bottom:1px solid var(--border);cursor:pointer;
+}
+.settings-row:last-child{border-bottom:none;}
+.settings-row .sico{
+  width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;
+}
+.settings-row .slabel{flex:1;font-weight:600;font-size:15px;}
+.settings-row .sval{color:var(--text-dim);font-size:14px;}
+.group-label{color:var(--text-dim);font-size:13px;font-weight:700;letter-spacing:.04em;margin:18px 2px 8px;text-transform:uppercase;}
+
+/* toast */
+#toast{
+  position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);background:#1c2735;
+  border:1px solid var(--border);color:var(--text);padding:12px 20px;border-radius:14px;font-size:14px;
+  opacity:0;transition:all .25s;z-index:200;pointer-events:none;max-width:90%;text-align:center;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+.nav-spacer{height:10px;}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <button class="backbtn" id="backBtn" onclick="goBack()">‹ <span id="backLabel">Orqaga</span></button>
+  <div class="topbar-title" id="topbarTitle"></div>
+</div>
+
+<div id="app"></div>
+<div id="toast"></div>
+
+<div class="sheet-overlay" id="sheetOverlay" onclick="if(event.target===this) closeSheet()">
+  <div class="sheet" id="sheetContent"></div>
+</div>
+
+<script>
+/* =========================================================
+   avtoinstruktor — Telegram Mini App (frontend)
+   Vanilla JS, no build step. Talks to the bundled Node API.
+   ========================================================= */
+
+const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+if (tg) { try { tg.ready(); tg.expand(); } catch(e){} }
+
+const TG_USER = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user : null;
+
+const ICONS = {
+  trophy:'🏆', search:'🔍', settings:'⚙️', sword:'⚔️', book:'📘', heart:'💔', ticket:'🎫',
+  hash:'#️⃣', warn:'⚠️', save:'🔖', sign:'🚸', shuffle:'🔀', list:'📋', play:'▶', back:'‹',
+  car:'🚗', cap:'🎓', star:'⭐', globe:'🌐', money:'💳', offline:'⬇️', reset:'♻️', theme:'🌙',
+  headset:'🎧', tg:'📨', share:'🔗', install:'📲'
+};
+
+let STATE = { topics:[], tickets:[], questions:[] };
+let NAV = []; // history stack of {view, params}
+let CURRENT = null;
+
+// ---------- local progress (per-device) ----------
+function loadProgress(){
+  try { return JSON.parse(localStorage.getItem('ai_progress')) || defaultProgress(); }
+  catch(e){ return defaultProgress(); }
+}
+function defaultProgress(){
+  return { correct:0, wrong:0, per:{}, bookmarks:[], rating:1000, battles:0, wins:0, losses:0,
+            examPassed:false, streak:0, lastVisit:null, history:[] };
+}
+let PROGRESS = loadProgress();
+function saveProgress(){ localStorage.setItem('ai_progress', JSON.stringify(PROGRESS)); }
+
+function bumpStreak(){
+  const today = new Date().toDateString();
+  if (PROGRESS.lastVisit !== today){
+    const y = new Date(Date.now()-86400000).toDateString();
+    PROGRESS.streak = (PROGRESS.lastVisit === y) ? PROGRESS.streak+1 : 1;
+    PROGRESS.lastVisit = today;
+    saveProgress();
+  }
+}
+bumpStreak();
+
+function recordAnswer(qid, correct){
+  PROGRESS.per[qid] = correct ? 'correct' : 'wrong';
+  if (correct) PROGRESS.correct++; else PROGRESS.wrong++;
+  saveProgress();
+}
+function overallPct(){
+  const t = PROGRESS.correct + PROGRESS.wrong;
+  if (!t) return 0;
+  return Math.round((PROGRESS.correct / t) * 100);
+}
+function topicPct(topicId){
+  const qs = STATE.questions.filter(q=>q.topicId===topicId);
+  if (!qs.length) return 0;
+  let answered=0, correct=0;
+  qs.forEach(q=>{ const r=PROGRESS.per[q.id]; if(r){answered++; if(r==='correct')correct++;} });
+  if (!answered) return 0;
+  return Math.round((correct/qs.length)*100 + (qs.length-answered)*0/qs.length); // unanswered counted as not-yet-mastered
+}
+function topicMasteryPct(topicId){
+  const qs = STATE.questions.filter(q=>q.topicId===topicId);
+  if (!qs.length) return 0;
+  const correct = qs.filter(q=>PROGRESS.per[q.id]==='correct').length;
+  return Math.round((correct/qs.length)*100);
+}
+
+const LEVELS = [
+  { key:'yangi', name:'Yangi boshlovchi', icon:'🌱', sub:'Boshlash vaqti keldi!', min:0, max:10, color:'#5b6878' },
+  { key:'shogird', name:'Shogird', icon:'📖', sub:"O'rganishda davom eting!", min:11, max:30, color:'#2fb6e6' },
+  { key:'tajribali', name:'Tajribali', icon:'🧭', sub:"Yaxshi ketayapsiz!", min:31, max:60, color:'#69d420' },
+  { key:'haydovchi', name:'Haydovchi', icon:'🚗', sub:"Ko'chaga chiqsa bo'ladi!", min:61, max:84, color:'#9b6bf6' },
+  { key:'instruktor', name:'Instruktor', icon:'🎓', sub:'Sizni GAI ham yiqita olmaydi!', min:95, max:100, color:'#f2b73b' }
+];
+function levelForPct(p){
+  for(let i=LEVELS.length-1;i>=0;i--){ if (p>=LEVELS[i].min) return LEVELS[i]; }
+  return LEVELS[0];
+}
+
+// ---------- API helpers ----------
+async function api(path, opts){
+  const res = await fetch('/api/'+path, opts);
+  if (!res.ok) { const e = await res.json().catch(()=>({error:'Xatolik'})); throw new Error(e.error||'Xatolik'); }
+  return res.json();
+}
+async function loadData(){
+  const [topics, tickets, questions] = await Promise.all([
+    api('topics'), api('tickets'), api('questions')
+  ]);
+  STATE.topics = topics; STATE.tickets = tickets; STATE.questions = questions;
+}
+
+function toast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(window._toastT);
+  window._toastT = setTimeout(()=>el.classList.remove('show'), 2200);
+}
+
+// ---------- router ----------
+function navigate(view, params, replace){
+  if (!replace) NAV.push(CURRENT);
+  CURRENT = { view, params: params||{} };
+  render();
+  window.scrollTo(0,0);
+  syncBackButton();
+}
+function goBack(){
+  if (NAV.length){
+    CURRENT = NAV.pop();
+    render();
+    window.scrollTo(0,0);
+    syncBackButton();
+  }
+}
+function syncBackButton(){
+  const isHome = CURRENT.view === 'home';
+  document.getElementById('topbar').classList.toggle('hidden', isHome);
+  if (tg && tg.BackButton){
+    if (isHome) tg.BackButton.hide(); else tg.BackButton.show();
+  }
+}
+if (tg && tg.BackButton) tg.BackButton.onClick(()=>goBack());
+
+function setTitle(t){ document.getElementById('topbarTitle').textContent = t || ''; }
+
+// ---------- sheet ----------
+function openSheet(html){
+  document.getElementById('sheetContent').innerHTML = html;
+  document.getElementById('sheetOverlay').classList.add('show');
+}
+function closeSheet(){ document.getElementById('sheetOverlay').classList.remove('show'); }
+
+// =========================================================
+// VIEWS
+// =========================================================
+function render(){
+  const app = document.getElementById('app');
+  const { view, params } = CURRENT;
+  if (view !== 'home') setTitle(viewTitle(view, params));
+  const fns = {
+    home: renderHome, profile: renderProfile, topics: renderTopics, tickets: renderTickets,
+    signs: renderSigns, search: renderSearch, quiz: renderQuiz, result: renderResult,
+    oktagon: renderOktagon, oktagonResult: renderOktagonResult, mybattles: renderMyBattles,
+    leaderboard: renderLeaderboard
+  };
+  app.innerHTML = '';
+  (fns[view] || renderHome)(app, params);
+  syncBackButton();
+}
+function viewTitle(view, params){
+  return {
+    profile:'Profil', topics:'Mavzular', tickets:'Biletlar', signs:"Yo'l belgilari",
+    search:'Qidirish', quiz: params && params.title || 'Test', result:'Natija',
+    oktagon:'OKTAGON', oktagonResult:'Jang natijasi', mybattles:'Mening janglarim',
+    leaderboard:"Eng zo'rlari"
+  }[view] || '';
+}
+
+// ---- HOME ----
+function renderHome(app){
+  const pct = overallPct();
+  const totalAnswered = PROGRESS.correct + PROGRESS.wrong;
+  const wrongCount = Object.values(PROGRESS.per).filter(v=>v==='wrong').length;
+  const bookmarkCount = PROGRESS.bookmarks.length;
+  const mavzPct = STATE.topics.length ? Math.round(STATE.topics.reduce((s,t)=>s+topicMasteryPct(t.id),0)/STATE.topics.length) : 0;
+  const ticketPct = ticketsOverallPct();
+
+  app.innerHTML = `
+    <div class="home-header">
+      <img class="avatar" src="${profilePhoto()}" onerror="this.style.display='none'">
+      <div class="who">
+        <div class="name">${escapeHtml(profileName())}</div>
+        <div class="role">🎓 ${PROGRESS.examPassed ? 'INSTRUKTOR' : 'SHOGIRD'} ›</div>
+      </div>
+      <div class="icon-row">
+        <div class="icon-btn" onclick="openLevelSheet()">${ICONS.trophy}</div>
+        <div class="icon-btn" onclick="navigate('search')">${ICONS.search}</div>
+        <div class="icon-btn" onclick="navigate('profile')">${ICONS.settings}</div>
+      </div>
+    </div>
+
+    <div class="progress-card">
+      <div class="top-row">
+        <div>
+          <div class="label">${PROGRESS.examPassed ? '🏆 Imtihon topshirildi' : "Bilim darajangiz"}</div>
+          <div class="pct">${pct}%</div>
+        </div>
+        <div class="meta">
+          <div>⚡ ${PROGRESS.streak} kun</div>
+          <div class="ok">✓ ${PROGRESS.correct}</div>
+          <div class="bad">✗ ${PROGRESS.wrong}</div>
+        </div>
+      </div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+    </div>
+
+    <div class="grid2">
+      <div class="feat-card" onclick="navigate('quiz',{mode:'all', title:'Barcha testlar'})">
+        <div class="ico" style="background:#15283a;color:${'#2fb6e6'}">${ICONS.list}</div>
+        <div class="title">Barcha testlar</div>
+      </div>
+      <div class="feat-card" onclick="${wrongCount? "navigate('quiz',{mode:'mistakes', title:'Xatolarni tuzatish'})" : "toast('Hozircha xato javoblar yo\\'q')"}">
+        ${wrongCount? `<div class="badge" style="background:#7a1f24">${wrongCount}</div>`:''}
+        <div class="ico" style="background:#321a1c;color:${'#e5484d'}">${ICONS.heart}</div>
+        <div class="title">Xatolarni tuzatish</div>
+      </div>
+    </div>
+
+    <button class="cta green" onclick="navigate('quiz',{mode:'continue', title:'Test yechish'})">
+      <div>
+        <div class="ctitle">${PROGRESS.examPassed ? "Imtihondan o'tdik" : 'Test yechish'}</div>
+        <div class="csub">${PROGRESS.examPassed ? "Yangi pravangiz qutlug' bo'lsin 🎉" : 'Xato qilgan yoki yechilmagan savollar'}</div>
+      </div>
+      <div class="playico">${ICONS.play}</div>
+    </button>
+
+    <div class="oktagon-card" onclick="navigate('oktagon')">
+      <div>
+        <div class="ctitle">OKTAGON</div>
+        <div class="csub">Birga-bir jang. O'ynab o'rganing</div>
+      </div>
+      <div class="swordwrap">${ICONS.sword}</div>
+    </div>
+
+    <div class="grid2">
+      <div class="feat-card" onclick="navigate('topics')">
+        ${STATE.topics.length? `<div class="pctbadge">${mavzPct}%</div>`:''}
+        <div class="ico" style="background:#241a3a;color:${'#9b6bf6'}">${ICONS.book}</div>
+        <div class="title">Mavzular</div>
+        <div class="miniprog" style="width:${mavzPct}%"></div>
+      </div>
+      <div class="feat-card" onclick="navigate('tickets')">
+        ${STATE.tickets.length? `<div class="pctbadge" style="background:${'#f2b73b'};color:#2b1d02">${ticketPct}%</div>`:''}
+        <div class="ico" style="background:#3a2c12;color:${'#f2b73b'}">${ICONS.ticket}</div>
+        <div class="title">Biletlar</div>
+        <div class="miniprog" style="background:${'#f2b73b'};width:${ticketPct}%"></div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="feat-card" onclick="openCountSheet()">
+        <div class="ico" style="background:#12301f;color:${'#69d420'}">1️⃣</div>
+        <div class="title">50/100/200/500 talik</div>
+      </div>
+      <div class="feat-card" onclick="navigate('quiz',{mode:'exam', title:'Real imtihon'})">
+        <div class="ico" style="background:#12301f;color:${'#69d420'}">✅</div>
+        <div class="title">Real imtihon</div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="feat-card" onclick="navigate('quiz',{mode:'shuffle', title:"Chalg'ituvchi"})">
+        <div class="ico" style="background:#321a1c;color:${'#e5484d'}">${ICONS.warn}</div>
+        <div class="title">Chalg'ituvchi</div>
+      </div>
+      <div class="feat-card" onclick="${bookmarkCount? "navigate('quiz',{mode:'saved', title:'Saqlanganlar'})" : "toast('Saqlangan savollar yo\\'q')"}">
+        ${bookmarkCount? `<div class="badge" style="background:#5c4a14">${bookmarkCount}</div>`:''}
+        <div class="ico" style="background:#3a2c12;color:${'#f2b73b'}">${ICONS.save}</div>
+        <div class="title">Saqlanganlar</div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="feat-card" onclick="navigate('signs')">
+        <div class="ico" style="background:#15283a;color:${'#2fb6e6'}">${ICONS.sign}</div>
+        <div class="title">Yo'l belgilari</div>
+      </div>
+      <div class="feat-card" onclick="navigate('quiz',{mode:'numeric', title:'Raqamli savollar'})">
+        <div class="ico" style="background:#241a3a;color:${'#9b6bf6'}">${ICONS.hash}</div>
+        <div class="title">Raqamli savollar</div>
+      </div>
+    </div>
+  `;
+}
+function profileName(){ return localStorage.getItem('ai_name') || (TG_USER ? (TG_USER.first_name||'Foydalanuvchi') : 'avtoinstruktor'); }
+function profilePhoto(){ return localStorage.getItem('ai_photo') || (TG_USER && TG_USER.photo_url) || ''; }
+function ticketsOverallPct(){
+  if (!STATE.tickets.length) return 0;
+  const vals = STATE.tickets.map(t=>{
+    const qs = STATE.questions.filter(q=>q.ticketId===t.id);
+    if (!qs.length) return 0;
+    const c = qs.filter(q=>PROGRESS.per[q.id]==='correct').length;
+    return (c/qs.length)*100;
+  });
+  return Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);
+}
+
+// ---- LEVEL SHEET (trophy) ----
+function openLevelSheet(){
+  const pct = overallPct();
+  const cur = levelForPct(pct);
+  const idx = LEVELS.findIndex(l=>l.key===cur.key);
+  const cards = LEVELS.map(l=>`
+    <div class="level-card" style="background:radial-gradient(circle at 50% 30%, ${l.color}33, ${l.color}11);border-color:${l.color}55">
+      <div class="lico">${l.icon}</div>
+      <div class="lname">${l.name}</div>
+      <div class="lsub">${l.sub}</div>
+    </div>`).join('');
+  const dots = LEVELS.map((l,i)=>`<div class="dot ${i===idx?'active':''}"></div>`).join('');
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <h3>Sizning darajangiz</h3>
+    <div class="sub">Joriy o'zlashtirishingiz: ${pct}%</div>
+    <div class="level-track" id="levelTrack">${cards}</div>
+    <div class="dots">${dots}</div>
+    <div class="range-row"><span>${cur.min}% – ${cur.max}%</span><span>${pct}%</span></div>
+    <div class="full-bar-track"><div class="full-bar-fill" style="width:${pct}%;background:${cur.color}"></div></div>
+    <button class="sheet-cta" style="background:${cur.color};color:#0b1017" onclick="closeSheet()">Imtihonga tayyormanmi?</button>
+    <button class="sheet-cta" style="background:var(--card-2);color:var(--text);margin-top:10px" onclick="closeSheet()">YOPISH</button>
+  `);
+  setTimeout(()=>{
+    const track = document.getElementById('levelTrack');
+    if (track) track.scrollLeft = idx*244;
+  },50);
+}
+
+// ---- COUNT SHEET (50/100/200/500) ----
+function openCountSheet(){
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <h3>Savol sonini tanlang</h3>
+    <div class="sub">Random savollar bilan test</div>
+    <div class="count-grid">
+      ${[50,100,200,500].map(n=>`
+        <div class="count-tile" onclick="closeSheet(); navigate('quiz',{mode:'random', count:${n}, title:'${n} talik'})">
+          <div class="num">${n}</div><div class="lbl">ta savol</div>
+        </div>`).join('')}
+    </div>
+  `);
+}
+
+// ---- PROFILE ----
+function renderProfile(app){
+  app.innerHTML = `
+    <div class="profile-head">
+      <img class="pavatar" src="${profilePhoto()}" onerror="this.style.display='none'">
+      <div class="pname">${escapeHtml(profileName())}</div>
+    </div>
+
+    <div class="group-label">Umumiy</div>
+    <div class="settings-group">
+      <div class="settings-row" onclick="renameProfile()">
+        <div class="sico" style="background:#15283a;color:#2fb6e6">${ICONS.globe}</div>
+        <div class="slabel">Ismni o'zgartirish</div><div class="sval">›</div>
+      </div>
+      <div class="settings-row" onclick="exportProgress()">
+        <div class="sico" style="background:#241a3a;color:#9b6bf6">${ICONS.money}</div>
+        <div class="slabel">Progressni eksport qilish</div><div class="sval">›</div>
+      </div>
+      <div class="settings-row" onclick="toast('Oflayn rejim yoqilgan — savollar avtomatik saqlanadi')">
+        <div class="sico" style="background:#12301f;color:#69d420">${ICONS.offline}</div>
+        <div class="slabel">Oflayn rejim</div><div class="sval">yoqilgan</div>
+      </div>
+      <div class="settings-row" onclick="resetProgress()">
+        <div class="sico" style="background:#321a1c;color:#e5484d">${ICONS.reset}</div>
+        <div class="slabel">Progresni qayta boshlash</div><div class="sval">›</div>
+      </div>
+      <div class="settings-row">
+        <div class="sico" style="background:#241a3a;color:#9b6bf6">${ICONS.theme}</div>
+        <div class="slabel">Mavzu</div><div class="sval">Qorong'i</div>
+      </div>
+    </div>
+
+    <div class="group-label">Yordam</div>
+    <div class="settings-group">
+      <div class="settings-row" onclick="toast('Admin: /admin sahifasiga o\\'ting')">
+        <div class="sico" style="background:#12301f;color:#69d420">${ICONS.headset}</div>
+        <div class="slabel">Biz bilan bog'lanish</div><div class="sval">›</div>
+      </div>
+      <div class="settings-row">
+        <div class="sico" style="background:#15283a;color:#2fb6e6">${ICONS.tg}</div>
+        <div class="slabel">Telegram kanalimiz</div><div class="sval">›</div>
+      </div>
+      <div class="settings-row" onclick="shareApp()">
+        <div class="sico" style="background:#3a1a33;color:#f0529b">${ICONS.share}</div>
+        <div class="slabel">Ulashish</div><div class="sval">›</div>
+      </div>
+    </div>
+    <div class="nav-spacer"></div>
+  `;
+}
+function renameProfile(){
+  const n = prompt("Ismingizni kiriting:", profileName());
+  if (n) { localStorage.setItem('ai_name', n); render(); }
+}
+function exportProgress(){
+  const blob = new Blob([JSON.stringify(PROGRESS,null,2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = 'progress.json'; a.click();
+}
+function resetProgress(){
+  if (confirm("Butun progress o'chirilsinmi? Bu amalni qaytarib bo'lmaydi.")){
+    PROGRESS = defaultProgress(); saveProgress(); render(); toast("Progress tozalandi");
+  }
+}
+function shareApp(){
+  const url = location.href;
+  if (tg && tg.openTelegramLink){
+    tg.openTelegramLink('https://t.me/share/url?url='+encodeURIComponent(url)+'&text='+encodeURIComponent('Avto haydash nazariy testlari'));
+  } else if (navigator.share){
+    navigator.share({url, title:'avtoinstruktor'});
+  } else {
+    navigator.clipboard && navigator.clipboard.writeText(url);
+    toast('Havola nusxalandi');
+  }
+}
+
+// ---- TOPICS ----
+function renderTopics(app){
+  const pct = STATE.topics.length ? Math.round(STATE.topics.reduce((s,t)=>s+topicMasteryPct(t.id),0)/STATE.topics.length) : 0;
+  app.innerHTML = `
+    <div class="section-title">Mavzular</div>
+    <div class="full-bar-track" style="margin-bottom:18px"><div class="full-bar-fill" style="width:${pct}%;background:var(--blue)"></div></div>
+    <div id="topicList"></div>
+  `;
+  const list = document.getElementById('topicList');
+  if (!STATE.topics.length){
+    list.innerHTML = emptyState('📚', "Mavzular hali qo'shilmagan", "Admin panel orqali qo'shing");
+    return;
+  }
+  list.innerHTML = STATE.topics.map(t=>{
+    const qs = STATE.questions.filter(q=>q.topicId===t.id);
+    const m = topicMasteryPct(t.id);
+    const color = m>=90?'#69d420': m>=50?'#2fb6e6':'#3d4a5c';
+    return `
+      <div class="topic-row" onclick="${qs.length? `navigate('quiz',{mode:'topic', topicId:'${t.id}', title:'${escapeHtml(t.name)}'})` : "toast('Bu mavzuda savollar yo\\'q')"}">
+        <div class="head">
+          <div>
+            <div class="tname">${escapeHtml(t.name)}</div>
+            <div class="tcount">${qs.length} ta savol</div>
+          </div>
+          <div class="pct">${m}% ›</div>
+        </div>
+        <div class="tbar-track"><div class="tbar-fill" style="width:${m}%;background:${color}"></div></div>
+      </div>`;
+  }).join('');
+}
+
+// ---- TICKETS ----
+function renderTickets(app){
+  app.innerHTML = `<div class="section-title">Biletlar</div><div class="grid2" id="ticketGrid"></div>`;
+  const grid = document.getElementById('ticketGrid');
+  if (!STATE.tickets.length){
+    grid.outerHTML = emptyState('🎫', "Biletlar hali qo'shilmagan", "Admin panel orqali qo'shing");
+    return;
+  }
+  grid.innerHTML = STATE.tickets.map(t=>{
+    const qs = STATE.questions.filter(q=>q.ticketId===t.id);
+    const correct = qs.filter(q=>PROGRESS.per[q.id]==='correct').length;
+    const wrong = qs.filter(q=>PROGRESS.per[q.id]==='wrong').length;
+    if (!qs.length) return `<div class="ticket-tile empty"><div class="tnum">${t.number}-bilet</div><div class="trow">Bo'sh</div></div>`;
+    return `
+      <div class="ticket-tile" onclick="navigate('quiz',{mode:'ticket', ticketId:'${t.id}', title:'${t.number}-bilet'})">
+        <div class="tnum">${t.number} - bilet</div>
+        <div class="trow"><span class="ok">${correct||qs.length}</span><span class="bad">${wrong}</span></div>
+      </div>`;
+  }).join('');
+}
+
+// ---- SIGNS ----
+const SIGN_EMOJI = { default:'🚸' };
+function renderSigns(app){
+  const signTopics = STATE.topics.filter(t=>t.isSign);
+  app.innerHTML = `<div class="section-title">Yo'l belgilari</div><div class="grid2" id="signGrid"></div>`;
+  const grid = document.getElementById('signGrid');
+  if (!signTopics.length){
+    grid.outerHTML = emptyState('🚸', "Belgi mavzulari yo'q", "Admin panelda mavzuga 'Belgi' deb belgilang");
+    return;
+  }
+  grid.innerHTML = signTopics.map(t=>{
+    const qs = STATE.questions.filter(q=>q.topicId===t.id);
+    return `
+      <div class="sign-tile" onclick="${qs.length? `navigate('quiz',{mode:'topic', topicId:'${t.id}', title:'${escapeHtml(t.name)}'})` : "toast('Savollar yo\\'q')"}">
+        <span class="emoji">${SIGN_EMOJI.default}</span>
+        <div class="sname">${escapeHtml(t.name)}</div>
+        <div class="scount">${qs.length} ta</div>
+      </div>`;
+  }).join('');
+}
+
+// ---- SEARCH ----
+function renderSearch(app){
+  app.innerHTML = `
+    <div class="searchbar">
+      ${ICONS.search}
+      <input id="searchInput" placeholder="Savol yoki javob qidirish...">
+    </div>
+    <div class="chip-row">
+      <button class="chip active" id="chipImg" onclick="toggleChip('chipImg')">Rasmli</button>
+      <button class="chip active" id="chipNoImg" onclick="toggleChip('chipNoImg')">Rasmsiz</button>
+    </div>
+    <div id="searchResults"></div>
+  `;
+  const input = document.getElementById('searchInput');
+  input.addEventListener('input', doSearch);
+  input.focus();
+  doSearch();
+}
+function toggleChip(id){ document.getElementById(id).classList.toggle('active'); doSearch(); }
+function doSearch(){
+  const q = (document.getElementById('searchInput').value||'').trim().toLowerCase();
+  const withImg = document.getElementById('chipImg').classList.contains('active');
+  const noImg = document.getElementById('chipNoImg').classList.contains('active');
+  let results = STATE.questions.filter(qq=>{
+    if (qq.image && !withImg) return false;
+    if (!qq.image && !noImg) return false;
+    if (!q) return true;
+    if (qq.text.toLowerCase().includes(q)) return true;
+    return (qq.answers||[]).some(a=>a.text.toLowerCase().includes(q));
+  }).slice(0,40);
+  const box = document.getElementById('searchResults');
+  if (!q){ box.innerHTML=''; return; }
+  if (!results.length){ box.innerHTML = emptyState('🔍','Hech narsa topilmadi',''); return; }
+  box.innerHTML = results.map(qq=>`
+    <div class="topic-row" onclick="navigate('quiz',{mode:'single', qid:'${qq.id}', title:'Savol'})">
+      <div class="tname" style="margin-bottom:4px">${escapeHtml(qq.text)}</div>
+      <div class="tcount">${(qq.answers||[]).filter(a=>a.correct).map(a=>'✓ '+escapeHtml(a.text)).join(' ')}</div>
+    </div>`).join('');
+}
+
+function emptyState(emoji, title, sub){
+  return `<div class="empty-state"><div class="e">${emoji}</div><div style="font-weight:700;color:var(--text);margin-bottom:6px">${title}</div><div>${sub}</div></div>`;
+}
+function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// =========================================================
+// QUIZ ENGINE
+// =========================================================
+let QUIZ = null;
+function buildQuestionPool(params){
+  const mode = params.mode;
+  let pool = [];
+  if (mode==='all') pool = STATE.questions.slice();
+  else if (mode==='topic') pool = STATE.questions.filter(q=>q.topicId===params.topicId);
+  else if (mode==='ticket') pool = STATE.questions.filter(q=>q.ticketId===params.ticketId);
+  else if (mode==='mistakes') pool = STATE.questions.filter(q=>PROGRESS.per[q.id]==='wrong');
+  else if (mode==='saved') pool = STATE.questions.filter(q=>PROGRESS.bookmarks.includes(q.id));
+  else if (mode==='single') pool = STATE.questions.filter(q=>q.id===params.qid);
+  else if (mode==='continue') pool = STATE.questions.filter(q=>!PROGRESS.per[q.id] || PROGRESS.per[q.id]==='wrong');
+  else if (mode==='numeric') pool = STATE.questions.filter(q=>(q.answers||[]).some(a=>a.correct && /^\d+([.,]\d+)?\s*\S*$/.test(a.text.trim())));
+  else if (mode==='shuffle' || mode==='random') pool = STATE.questions.slice();
+  else if (mode==='exam') pool = STATE.questions.slice();
+  else pool = STATE.questions.slice();
+
+  pool = shuffle(pool.slice());
+  let count = params.count;
+  if (mode==='exam') count = Math.min(20, pool.length);
+  if (!count) count = pool.length;
+  pool = pool.slice(0, count);
+  return pool.map(q=>{
+    const answers = shuffle((q.answers||[]).slice());
+    return Object.assign({}, q, { answers });
+  });
+}
+function shuffle(arr){
+  for (let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
+  return arr;
+}
+
+function renderQuiz(app, params){
+  if (!QUIZ || QUIZ._key !== JSON.stringify(params)){
+    const pool = buildQuestionPool(params);
+    QUIZ = { _key: JSON.stringify(params), params, pool, idx:0, correct:0, wrong:0, answered:false,
+              isExam: params.mode==='exam', timeLeft: params.mode==='exam' ? 25*60 : null };
+    if (QUIZ.isExam) startExamTimer();
+  }
+  if (!QUIZ.pool.length){
+    app.innerHTML = emptyState('🗂️', 'Savollar topilmadi', "Bu bo'limda hali savol yo'q. Admin panel orqali qo'shing.");
+    return;
+  }
+  if (QUIZ.idx >= QUIZ.pool.length){
+    finishQuiz();
+    return;
+  }
+  const q = QUIZ.pool[QUIZ.idx];
+  const isBookmarked = PROGRESS.bookmarks.includes(q.id);
+  const total = QUIZ.pool.length;
+
+  app.innerHTML = `
+    <div class="qtop-row">
+      <div class="quiz-progress" style="flex:1">
+        <div class="qnum">${QUIZ.idx+1}/${total}</div>
+        <div class="qbar"><div class="qbar-fill" style="width:${(QUIZ.idx/total)*100}%"></div></div>
+        ${QUIZ.isExam ? `<div class="quiz-timer" id="examTimer">${fmtTime(QUIZ.timeLeft)}</div>` : ''}
+      </div>
+      <div class="bookmark-toggle" onclick="toggleBookmark('${q.id}')">${isBookmarked? '🔖':'📑'}</div>
+    </div>
+    ${q.image ? `<div class="qimg-wrap"><img src="${q.image}" alt=""></div>` : ''}
+    <div class="qtext">${escapeHtml(q.text)}</div>
+    <div class="answers" id="answersBox">
+      ${q.answers.map((a,i)=>`
+        <button class="ans-btn" data-i="${i}" onclick="selectAnswer(${i})">
+          <span class="letter">${String.fromCharCode(65+i)}</span><span>${escapeHtml(a.text)}</span>
+        </button>`).join('')}
+    </div>
+    <div id="explainBox"></div>
+    <div class="quiz-footer" id="quizFooter" style="display:none">
+      <button class="btn-primary" onclick="nextQuestion()">${QUIZ.idx+1<total? 'Keyingisi':'Yakunlash'}</button>
+    </div>
+  `;
+}
+function fmtTime(s){ const m=Math.floor(s/60), sec=s%60; return `⏱ ${m}:${String(sec).padStart(2,'0')}`; }
+function startExamTimer(){
+  clearInterval(window._examInt);
+  window._examInt = setInterval(()=>{
+    if (!QUIZ || !QUIZ.isExam) { clearInterval(window._examInt); return; }
+    QUIZ.timeLeft--;
+    const el = document.getElementById('examTimer');
+    if (el) el.textContent = fmtTime(Math.max(0,QUIZ.timeLeft));
+    if (QUIZ.timeLeft<=0){ clearInterval(window._examInt); finishQuiz(); }
+  },1000);
+}
+function toggleBookmark(qid){
+  const i = PROGRESS.bookmarks.indexOf(qid);
+  if (i>=0) PROGRESS.bookmarks.splice(i,1); else PROGRESS.bookmarks.push(qid);
+  saveProgress();
+  render();
+}
+function selectAnswer(i){
+  if (QUIZ.answered) return;
+  QUIZ.answered = true;
+  const q = QUIZ.pool[QUIZ.idx];
+  const buttons = document.querySelectorAll('#answersBox .ans-btn');
+  const correctIdx = q.answers.findIndex(a=>a.correct);
+  const isCorrect = i===correctIdx;
+  buttons.forEach((b,idx)=>{
+    b.classList.add('disabled');
+    if (idx===correctIdx) b.classList.add('correct');
+    else if (idx===i) b.classList.add('wrong');
+  });
+  if (isCorrect) QUIZ.correct++; else QUIZ.wrong++;
+  recordAnswer(q.id, isCorrect);
+  if (q.explanation){
+    document.getElementById('explainBox').innerHTML = `<div class="explain-box">💡 ${escapeHtml(q.explanation)}</div>`;
+  }
+  document.getElementById('quizFooter').style.display = 'flex';
+}
+function nextQuestion(){
+  QUIZ.idx++; QUIZ.answered = false;
+  render();
+}
+function finishQuiz(){
+  clearInterval(window._examInt);
+  const total = QUIZ.pool.length;
+  const pct = total ? Math.round((QUIZ.correct/total)*100) : 0;
+  const passed = QUIZ.isExam ? (QUIZ.correct >= 18) : pct>=60;
+  if (QUIZ.isExam && passed) { PROGRESS.examPassed = true; saveProgress(); }
+  navigate('result', { correct:QUIZ.correct, wrong:QUIZ.wrong, total, pct, passed, isExam:QUIZ.isExam }, true);
+  QUIZ = null;
+}
+function renderResult(app, p){
+  const color = p.pct>=80 ? 'var(--green)' : p.pct>=50 ? 'var(--yellow)' : 'var(--red)';
+  app.innerHTML = `
+    <div class="result-wrap">
+      <div class="result-circle" style="border-color:${color}">
+        <div class="big">${p.pct}%</div>
+        <div class="small">natija</div>
+      </div>
+      <div class="result-title">${p.isExam ? (p.passed? "Imtihondan o'tdingiz! 🎉" : "Imtihondan o'ta olmadingiz") : (p.passed? 'Ajoyib natija!' : "Yana mashq qiling")}</div>
+      <div class="result-sub">${p.correct} to'g'ri / ${p.total} savoldan</div>
+      <div class="result-stats">
+        <div><div class="v" style="color:var(--green)">${p.correct}</div><div class="l">To'g'ri</div></div>
+        <div><div class="v" style="color:var(--red)">${p.wrong}</div><div class="l">Xato</div></div>
+      </div>
+      <div class="quiz-footer">
+        <button class="btn-ghost" onclick="navigate('home',{},true)">Bosh sahifa</button>
+        <button class="btn-primary" onclick="navigate('home',{},true)">Davom etish</button>
+      </div>
+    </div>
+  `;
+}
+
+// =========================================================
+// OKTAGON (1v1 vs bot — local simulation, no real backend match-making)
+// =========================================================
+const BOT_NAMES = ['Sherzod','Aziz','Dilnoza','Javlon','Madina','Bobur','Kamola','Otabek'];
+function renderOktagon(app){
+  const tier = oktagonTier();
+  app.innerHTML = `
+    <div style="text-align:center;padding:10px 0 20px">
+      <div style="width:96px;height:96px;border-radius:50%;background:var(--card);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:40px;margin:0 auto 14px">${ICONS.sword}</div>
+      <div style="font-size:26px;font-weight:800;letter-spacing:.04em">OKTAGON</div>
+      <div style="color:var(--text-dim);font-size:13px;letter-spacing:.08em">JANG REJIMI</div>
+    </div>
+    <div class="settings-group" style="display:flex;text-align:center;padding:18px 0;margin-bottom:14px">
+      <div style="flex:1"><div style="font-size:22px">${tier.medal}</div><div style="font-size:12px;color:var(--text-dim);margin-top:4px">${tier.name}</div></div>
+      <div style="flex:1;border-left:1px solid var(--border);border-right:1px solid var(--border)"><div style="font-size:22px;font-weight:800;color:var(--green)">${PROGRESS.rating}</div><div style="font-size:12px;color:var(--text-dim);margin-top:4px">ball</div></div>
+      <div style="flex:1"><div style="font-size:22px;font-weight:800">${PROGRESS.battles}</div><div style="font-size:12px;color:var(--text-dim);margin-top:4px">Janglar</div></div>
+    </div>
+    <div class="grid2">
+      <div class="feat-card" onclick="toast('Demo rejimda real onlayn raqiblar mavjud emas')">
+        <div class="title">Onlayn o'yinchilar</div>
+      </div>
+      <div class="feat-card" onclick="navigate('leaderboard')">
+        <div class="ico" style="background:#3a2c12;color:#f2b73b">${ICONS.trophy}</div>
+        <div class="title">Eng zo'rlari</div>
+      </div>
+      <div class="feat-card" onclick="shareApp()">
+        <div class="title">Do'stni jangga chaqirish</div>
+      </div>
+      <div class="feat-card" onclick="navigate('mybattles')">
+        <div class="title">Mening janglarim</div>
+      </div>
+    </div>
+    <button class="cta green" style="justify-content:center;margin-top:10px" onclick="startBotBattle()">
+      <div class="ctitle">⚔ QIDIRISHNI BOSHLASH</div>
+    </button>
+  `;
+}
+function oktagonTier(){
+  const r = PROGRESS.rating;
+  if (r>=1400) return {name:'Oltin', medal:'🥇'};
+  if (r>=1100) return {name:'Kumush', medal:'🥈'};
+  return {name:'Bronza', medal:'🥉'};
+}
+function startBotBattle(){
+  const pool = shuffle(STATE.questions.slice()).slice(0,5);
+  if (pool.length < 1){ toast("Savollar yetarli emas"); return; }
+  const botName = BOT_NAMES[Math.floor(Math.random()*BOT_NAMES.length)];
+  toast('Raqib qidirilmoqda...');
+  setTimeout(()=>runBotBattle(pool, botName), 900);
+}
+function runBotBattle(pool, botName){
+  let userScore=0, botScore=0;
+  pool.forEach(q=>{
+    const correctIdx = (q.answers||[]).findIndex(a=>a.correct);
+    const userCorrect = Math.random() < Math.max(0.35, overallPct()/100);
+    const botCorrect = Math.random() < 0.6;
+    if (userCorrect) userScore++;
+    if (botCorrect) botScore++;
+  });
+  const won = userScore>botScore;
+  const draw = userScore===botScore;
+  PROGRESS.battles++;
+  if (won){ PROGRESS.wins++; PROGRESS.rating += 18; }
+  else if (!draw){ PROGRESS.losses++; PROGRESS.rating = Math.max(800, PROGRESS.rating-14); }
+  PROGRESS.history = PROGRESS.history || [];
+  PROGRESS.history.unshift({ botName, userScore, botScore, won, draw, ts: Date.now() });
+  PROGRESS.history = PROGRESS.history.slice(0,30);
+  saveProgress();
+  navigate('oktagonResult', { botName, userScore, botScore, won, draw, total:pool.length }, true);
+}
+function renderOktagonResult(app, p){
+  const title = p.draw ? "Durang!" : (p.won ? "G'alaba! 🏆" : "Mag'lubiyat");
+  const color = p.draw ? 'var(--yellow)' : (p.won ? 'var(--green)' : 'var(--red)');
+  app.innerHTML = `
+    <div class="result-wrap">
+      <div class="result-circle" style="border-color:${color}">
+        <div class="big">${p.userScore}:${p.botScore}</div>
+        <div class="small">hisob</div>
+      </div>
+      <div class="result-title">${title}</div>
+      <div class="result-sub">Raqib: ${escapeHtml(p.botName)} • ${p.total} savol</div>
+      <div class="quiz-footer">
+        <button class="btn-ghost" onclick="navigate('oktagon',{},true)">Oktagon</button>
+        <button class="btn-primary" onclick="navigate('home',{},true)">Bosh sahifa</button>
+      </div>
+    </div>
+  `;
+}
+function renderMyBattles(app){
+  const h = PROGRESS.history||[];
+  if (!h.length){ app.innerHTML = emptyState('⚔️','Hali janglar yo\'q','Oktagonda birinchi jangni boshlang'); return; }
+  app.innerHTML = h.map(b=>`
+    <div class="topic-row">
+      <div class="head">
+        <div class="tname">${escapeHtml(b.botName)} bilan</div>
+        <div class="pct" style="color:${b.draw?'var(--yellow)':(b.won?'var(--green)':'var(--red)')}">${b.userScore}:${b.botScore}</div>
+      </div>
+      <div class="tcount">${new Date(b.ts).toLocaleString()}</div>
+    </div>`).join('');
+}
+function renderLeaderboard(app){
+  const demo = [
+    {name:'Sherzod_99', r:1820},{name:'Madina.A', r:1640},{name:'Aziz_pro', r:1510},
+    {name:'Bobur07', r:1390},{name:'Kamola_K', r:1255},{name:'Otabek', r:1110}
+  ];
+  demo.push({name: profileName()+' (Siz)', r: PROGRESS.rating, me:true});
+  demo.sort((a,b)=>b.r-a.r);
+  app.innerHTML = demo.map((d,i)=>`
+    <div class="topic-row" style="${d.me? 'border-color:var(--green)':''}">
+      <div class="head">
+        <div class="tname">${i+1}. ${escapeHtml(d.name)}</div>
+        <div class="pct">${d.r} ball</div>
+      </div>
+    </div>`).join('');
+}
+
+// =========================================================
+// INIT
+// =========================================================
+async function init(){
+  document.getElementById('app').innerHTML = `<div class="empty-state">Yuklanmoqda…</div>`;
+  try {
+    await loadData();
+  } catch(e){
+    document.getElementById('app').innerHTML = emptyState('⚠️','Serverga ulanib bo\'lmadi', String(e.message||e));
+    return;
+  }
+  CURRENT = { view:'home', params:{} };
+  render();
+}
+init();
+</script>
+</body>
+</html>
